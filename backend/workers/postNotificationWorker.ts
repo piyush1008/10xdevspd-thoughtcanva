@@ -9,11 +9,7 @@ import { connectDB } from "../utils/db";
 import usermodel from "../model/UserSchema";
 import { postModel } from "../model/PostSchema";
 import { subscriberModel } from "../model/SubscriberSchema";
-
-const sendEmail = async (to: string, subject: string, body: string) => {
-  // TODO: Replace this with a real email provider (e.g., SMTP, SendGrid, etc.)
-  console.log(`[Email] To: ${to}\nSubject: ${subject}\n\n${body}`);
-};
+import { enqueueEmail } from "../utils/emailQueue";
 
 const createRedisConsumerClient = () => {
   const url =
@@ -103,9 +99,9 @@ Visit the app to read it.`;
 
       for (const subscriber of subscribers) {
         const to = subscriber.email ?? subscriber.username;
-        await sendEmail(to, subject, body);
+        await enqueueEmail({ to, subject, text: body });
         console.log(
-          `[Notification] Sent new post "${post.title}" from "${owner.username}" to subscriber "${to}"`
+          `[Notification] Queued email for new post "${post.title}" from "${owner.username}" to subscriber "${to}"`
         );
       }
     } catch (err) {
